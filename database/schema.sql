@@ -1,38 +1,37 @@
-CREATE SCHEMA IF NOT EXISTS reviews
-  CREATE TABLE review(
+  CREATE TABLE IF NOT EXISTS reviews(
     id INT NOT NULL,
     product_id INT NOT NULL,
     rating INT,
-    date DATE,
+    date BIGINT,
     summary VARCHAR(500),
     body VARCHAR(2000),
-    recommend BOOLEAN,
-    reported BOOLEAN,
+    recommend BOOLEAN NOT NULL,
+    reported BOOLEAN NOT NULL,
     reviewer_name VARCHAR(5000),
     reviewer_email VARCHAR(50),
-    response null,
+    response TEXT,
     helpfulness INT,
-    PRIMARY KEY(id),
-  )
-  CREATE TABLE review_photos(
+    PRIMARY KEY(id)
+  );
+  CREATE TABLE IF NOT EXISTS review_photos(
     id INT NOT NULL,
     review_id INT NOT NULL,
     url VARCHAR(200),
     PRIMARY KEY (id)
-  )
+  );
+  CREATE TYPE characteristic_names AS ENUM ('Fit', 'Length', 'Size', 'Width', 'Comfort', 'Quality');
 
-  CREATE TYPE characteristics AS ENUM ('Fit', 'Length', 'Size', 'Width', 'Comfort', 'Quality')
-
-  CREATE TABLE characteristics(
+  CREATE TABLE IF NOT EXISTS characteristics(
     id INT NOT NULL,
     product_id INT NOT NULL,
-    name characteristics,
+    -- name ENUM ('Fit', 'Length', 'Size', 'Width', 'Comfort', 'Quality'),
+    name characteristic_names,
     PRIMARY KEY (id)
-  )
-
-  CREATE TABLE characteristic_reviews(
+  );
+  CREATE TABLE IF NOT EXISTS characteristic_reviews(
     id INT NOT NULL,
-    characteristic_id INT REFERENCES characteristics (characteristic_id),
-    review_id INT REFERENCES review_results (review_id),
-    value INT
-  )
+    characteristic_id INT REFERENCES characteristics(id),
+    review_id INT REFERENCES reviews (id),
+    value INT,
+    PRIMARY KEY (id)
+  );
