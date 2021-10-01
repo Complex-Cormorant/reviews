@@ -2,6 +2,7 @@
 
 Individual Service for Reviews
 
+==> COMMANDS FOR ETL PROCESS <==
 \copy reviews(id, product_id, rating, date, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) FROM '/Users/savs/Desktop/SEI/reviews/reviews.csv' DELIMITER ',' CSV HEADER;
 
 \copy review_photos(id, review_id, url) FROM '/Users/savs/Desktop/SEI/reviews/reviews_photos.csv' DELIMITER ',' CSV HEADER;
