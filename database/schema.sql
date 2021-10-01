@@ -31,7 +31,13 @@
   CREATE TABLE IF NOT EXISTS characteristic_reviews(
     id INT NOT NULL,
     characteristic_id INT REFERENCES characteristics(id),
-    review_id INT REFERENCES reviews (id),
+    review_id INT REFERENCES reviews(id),
     value INT,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT reviews_characteristics
+      FOREIGN KEY (review_id)
+      REFERENCES reviews (id),
+    CONSTRAINT characteristics_characteristic_reviews
+      FOREIGN KEY (characteristic_id)
+      REFERENCES characteristics (id)
   );

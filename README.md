@@ -4,6 +4,12 @@ Individual Service for Reviews
 
 \copy reviews(id, product_id, rating, date, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness) FROM '/Users/savs/Desktop/SEI/reviews/reviews.csv' DELIMITER ',' CSV HEADER;
 
+\copy review_photos(id, review_id, url) FROM '/Users/savs/Desktop/SEI/reviews/reviews_photos.csv' DELIMITER ',' CSV HEADER;
+
+\copy characteristics(id, product_id, name) FROM '/Users/savs/Desktop/SEI/reviews/characteristics.csv' DELIMITER ',' CSV HEADER;
+
+\copy characteristic_reviews(id, characteristic_id, review_id, value) FROM '/Users/savs/Desktop/SEI/reviews/characteristic_reviews.csv' DELIMITER ',' CSV HEADER;
+
 ==> reviews.csv <==
 id,product_id,rating,date,summary,body,recommend,reported,reviewer_name,reviewer_email,response,helpfulness
 1,1,5,1596080481467,"This product was great!","I really did or did not like this product based on whether it was sustainably sourced.  Then I found out that its made from nothing at all.",true,false,"funtime","first.last@gmail.com",null,8
