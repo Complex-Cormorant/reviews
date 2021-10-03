@@ -16,7 +16,7 @@ app.use(express.json());
 app.get('/api', queries.getReviews)
 
 // TODO:
-app.get('/api/reviews', queries.getReviewsAndPhotos)
+app.get('/api/reviews/:product_id', queries.getReviewsAndPhotos)
 
 // app.post('/api/reviews', queries.addReview)
 
