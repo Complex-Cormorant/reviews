@@ -18,7 +18,7 @@ app.get('/api', queries.getReviews)
 app.get('/api/reviews/:product_id', queries.getReviewsAndPhotos)
 
 // TODO:
-// app.post('/api/reviews', queries.addReview)
+app.post('/api/reviews', queries.addReview)
 
 // app.put('/api/reviews/:review_id/helpful', queries.markHelpful)
 
