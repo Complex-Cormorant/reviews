@@ -28,26 +28,42 @@ module.exports = {
   // need to figure out how to handle recommend, response, helpfulness, reported
   addReview: (req, res) => {
     const { product_id, rating, date, summary, body, reviewer_name, reviewer_email } = req.body
-    pool.query('INSERT INTO reviews (product_id, rating, date, summary, body, reviewer_name, reviewer_email) VALUES ($1, $2, $3, $4, $5, $6, $7)', [product_id, rating, date, summary, body, reviewer_name, reviewer_email], (error, results) => {
+    pool.query('INSERT INTO reviews (product_id, rating, date, summary, body, reviewer_name, reviewer_email) VALUES ($1, $2, $3, $4, $5, $6, $7);', [product_id, rating, date, summary, body, reviewer_name, reviewer_email], (error, results) => {
       if (error) {
         res.send(error.message);
       } else {
-        res.send(`Review added: ${results.rows}`)
+        res.send(results.rows);
       }
     })
+  },
+
+  markHelpful: (req, res) => {
+    const { review_id } = req.query;
+    pool.query('UPDATE reviews SET helpfulness = helpfulness+1 WHERE reviews.id=$1;', [review_id], (error, results) => {
+      if (error) {
+        res.send(error.message);
+      } else {
+        res.send('Marked review helpful');
+      }
+    })
+
+  },
+
+  report: (req, res) => {
+    const { review_id } req.query;
+    pool.query('UPDATE reviews SET reported = true WHERE reviews.id=$1;', [review_id], (error, results) => {
+      if (error) {
+        res.send(error.message);
+      } else {
+        res.send('Reported');
+      }
+    })
+
   }
-
-//   markHelpful: (req, res) => {
-
-//   }
-
-//   report: (req, res) => {
-
-//   }
 }
 
 
-
+// UPDATE reviews SET helpfulness = helpfulness+1 WHERE reviews.id=31;
 
 // SELECT
 // reviews.id, product_id, rating, date, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, ARRAY_AGG ('id: ' || review_photos.id ||', url: ' || review_photos.url) photos

@@ -20,9 +20,9 @@ app.get('/api/reviews/:product_id', queries.getReviewsAndPhotos)
 // TODO:
 app.post('/api/reviews', queries.addReview)
 
-// app.put('/api/reviews/:review_id/helpful', queries.markHelpful)
+app.put('/api/reviews/:review_id/helpful', queries.markHelpful)
 
-// app.put('/api/reviews/:review_id/report', queries.report)
+app.put('/api/reviews/:review_id/report', queries.report)
 
 app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`)
