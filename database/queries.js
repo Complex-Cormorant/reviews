@@ -50,7 +50,7 @@ module.exports = {
   },
 
   report: (req, res) => {
-    const { review_id } req.query;
+    const { review_id } = req.query;
     pool.query('UPDATE reviews SET reported = true WHERE reviews.id=$1;', [review_id], (error, results) => {
       if (error) {
         res.send(error.message);
