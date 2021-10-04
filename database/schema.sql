@@ -1,5 +1,5 @@
   CREATE TABLE IF NOT EXISTS reviews(
-    id INT NOT NULL,
+    id SERIAL NOT NULL,
     product_id INT NOT NULL,
     rating INT,
     date BIGINT,
@@ -24,7 +24,6 @@
   CREATE TABLE IF NOT EXISTS characteristics(
     id INT NOT NULL,
     product_id INT NOT NULL,
-    -- name ENUM ('Fit', 'Length', 'Size', 'Width', 'Comfort', 'Quality'),
     name characteristic_names,
     PRIMARY KEY (id)
   );
@@ -41,3 +40,4 @@
       FOREIGN KEY (characteristic_id)
       REFERENCES characteristics (id)
   );
+`
