@@ -13,9 +13,11 @@ app.use(express.json());
 //   res.send('hullo world');
 // })
 
-app.get('/api', queries.getReviews)
+// app.get('/api', queries.getReviews)
 
 app.get('/api/reviews/:product_id', queries.getReviewsAndPhotos)
+
+app.get('/api/reviews/', queries.getMeta)
 
 // TODO:
 app.post('/api/reviews', queries.addReview)
