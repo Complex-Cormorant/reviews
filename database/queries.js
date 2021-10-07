@@ -1,22 +1,23 @@
 const pool = require('./index.js');
 
 module.exports = {
-  // getReviews: (req, res) => {
-  //   const id = (req.query.product_id)
-  //   const count = (req.query.count)
-  //   pool.query('select * from reviews where reviews.product_id = $1 limit $2;', [id, count], (error, results) => {
-  //     if (error) {
-  //       res.send(error);
-  //     } else {
-  //       res.send(results.rows)
-  //     }
-  //   })
-  // },
+  getReviews: (req, res) => {
+    const id = (req.query.product_id)
+    const count = (req.query.count)
+    pool.query('select * from reviews where reviews.product_id = $1 limit $2;', [id, count], (error, results) => {
+      if (error) {
+        res.send(error);
+      } else {
+        res.send(results.rows)
+      }
+    })
+  },
 
-  // // need to add characteristics
+  // need to add characteristics, add coalesce
+
   getReviewsAndPhotos: (req, res) => {
     const id = (req.query.product_id)
-    pool.query("SELECT reviews.id, product_id, rating, to_timestamp(cast(date/1000 as bigint)) AS date, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, ARRAY_AGG ( json_build_object('id', review_photos.id, 'url', review_photos.url)) photos FROM reviews INNER JOIN review_photos ON reviews.id = review_photos.review_id WHERE (product_id = $1) GROUP BY reviews.id;", [id], (error, results) => {
+    pool.query("SELECT reviews.id, product_id, rating, to_timestamp(cast(date/1000 as bigint)) AS date, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, ARRAY_AGG ( json_build_object('id', review_photos.id, 'url', review_photos.url)) photos FROM reviews LEFT JOIN review_photos ON reviews.id = review_photos.review_id WHERE (product_id = $1) GROUP BY reviews.id;", [id], (error, results) => {
       if (error) {
         res.send(error);
       } else {
@@ -30,7 +31,7 @@ module.exports = {
   // can't use name 'characteristics' because it's a table name
   getMeta: (req, res) => {
     const id = (req.query.product_id)
-    pool.query("SELECT reviews.product_id, json_agg ( json_build_object('name', characteristics.name, 'id', characteristics.id, 'value', characteristic_reviews.value)) characteristic FROM reviews INNER JOIN characteristic_reviews ON reviews.id = characteristic_reviews.review_id INNER JOIN characteristics ON characteristic_reviews.characteristic_id = characteristics.id WHERE (reviews.product_id = $1) GROUP BY reviews.product_id;", [id], (error, results) => {
+    pool.query("SELECT (json_object_agg (characteristics.name, json_build_object( 'id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id)))) AS characteristics, (SELECT (sum(CASE WHEN recommend THEN 1 ELSE 0 END), 0) FROM reviews AS recommended) FROM characteristics WHERE (product_id = $1);", [id], (error, results) => {
       if (error) {
         res.send(error.message);
       } else {
@@ -38,6 +39,35 @@ module.exports = {
       }
     })
   },
+
+  // WORKING RECOMMENDED AND RATINGS DRAFTS
+  // COALESCE (COUNT(rating) WHERE rating = 1) AS ratings,
+  // COALESCE (sum(CASE WHEN recommend THEN 1 ELSE 0 END), 0) AS recommended
+  // GROUP BY
+  // reviews.product_id, characteristics.name;
+
+  // MOST RECENT DRAFT
+  // SELECT
+  //     (json_object_agg (characteristics.name,
+  //       json_build_object( 'id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id)))),
+  //       (SELECT (sum(CASE WHEN recommend THEN 1 ELSE 0 END), 0) FROM reviews AS recommended), (SELECT (json_build_object('1', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 1), '2', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 2), '3', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 3), '4', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 4), '5', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 5)))) AS ratings
+  // FROM
+  //   characteristics
+  // WHERE
+  //   (product_id = 4);
+
+
+
+  // WORKS TO GET CORRECT KEYS AND VALUES
+  // SELECT
+  //     (json_object_agg (characteristics.name,
+  //       json_build_object( 'id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id))))
+  // FROM
+  //   characteristics
+  // WHERE
+  //   (product_id = 4);
+  // GROUP BY
+  //   reviews.product_id, characteristics.name;
 
   // need to figure out how to handle recommend, response, helpfulness, reported
   addReview: (req, res) => {
@@ -74,18 +104,22 @@ module.exports = {
     })
 
   }
-}
+};
+
+
+
 
   // // makes one entry per characteristic
   // SELECT
-  //   * FROM reviews
-  // INNER JOIN
+  //   reviews.product_id FROM reviews
+  // LEFT JOIN
   //   characteristic_reviews
-  //     ON reviews.id = characteristic_reviews.review_id
+  //     ON reviews.id in characteristic_reviews.review_id
   // INNER JOIN
   //   characteristics
   //     ON characteristic_reviews.characteristic_id = characteristics.id
-  // WHERE (reviews.product_id = 4);
+  // WHERE (reviews.product_id = 4)
+  // GROUP BY reviews.product_id;
 
 // UPDATE reviews SET helpfulness = helpfulness+1 WHERE reviews.id=31;
 
@@ -107,3 +141,32 @@ module.exports = {
 
 // old array aggregate
 // ('id: ' || review_photos.id || ', url: '  || review_photos.url)
+
+// SELECT reviews.product_id, json_agg ( json_build_object('name', characteristics.name, 'id', characteristics.id, 'value', characteristic_reviews.value)) characteristic FROM reviews, ((SELECT COALESCE (sum(CASE WHEN recommend THEN 1 ELSE 0 END), 0) FROM reviews) ) INNER JOIN characteristic_reviews ON reviews.id = characteristic_reviews.review_id INNER JOIN characteristics ON characteristic_reviews.characteristic_id = characteristics.id WHERE (reviews.product_id = 4) GROUP BY reviews.product_id;
+
+
+// json_agg (json_build_object ('1', sum(CASE WHEN rating THEN 1 )
+// ))
+
+// // case
+
+// // MOST RECENT
+// SELECT
+//   reviews.product_id,
+//   json_agg
+//     ( json_build_object(characteristics.name,
+//       json_build_object( 'id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id))))
+// FROM
+//   reviews
+// LEFT JOIN
+//   characteristic_reviews ON reviews.id = characteristic_reviews.review_id
+// INNER JOIN
+//   characteristics ON characteristic_reviews.characteristic_id = characteristics.id
+// WHERE
+//   (reviews.product_id = 4)
+// GROUP BY
+//   reviews.product_id, characteristics.name;
+
+
+// SELECT *,
+// FROM reviews;
