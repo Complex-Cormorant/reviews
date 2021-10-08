@@ -31,7 +31,7 @@ module.exports = {
   // can't use name 'characteristics' because it's a table name
   getMeta: (req, res) => {
     const id = (req.query.product_id)
-    pool.query("SELECT (json_object_agg (characteristics.name, json_build_object( 'id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id)))) AS characteristics, (SELECT (sum(CASE WHEN recommend THEN 1 ELSE 0 END), 0) FROM reviews AS recommended) FROM characteristics WHERE (product_id = $1);", [id], (error, results) => {
+    pool.query("SELECT (json_object_agg (characteristics.name, json_build_object('id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id AND product_id = $1)))) AS characteristics, (SELECT (sum(CASE WHEN recommend THEN 1 ELSE 0 END)) FROM reviews WHERE product_id = $1) AS recommended, (SELECT (json_build_object('1', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 1 AND product_id = $1), '2', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 2 AND product_id = $1), '3', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 3 AND product_id = $1), '4', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 4 AND product_id = $1), '5', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 5 AND product_id = $1)))) AS ratings FROM characteristics WHERE (product_id = $1);", [id], (error, results) => {
       if (error) {
         res.send(error.message);
       } else {
@@ -39,35 +39,6 @@ module.exports = {
       }
     })
   },
-
-  // WORKING RECOMMENDED AND RATINGS DRAFTS
-  // COALESCE (COUNT(rating) WHERE rating = 1) AS ratings,
-  // COALESCE (sum(CASE WHEN recommend THEN 1 ELSE 0 END), 0) AS recommended
-  // GROUP BY
-  // reviews.product_id, characteristics.name;
-
-  // MOST RECENT DRAFT
-  // SELECT
-  //     (json_object_agg (characteristics.name,
-  //       json_build_object( 'id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id)))),
-  //       (SELECT (sum(CASE WHEN recommend THEN 1 ELSE 0 END), 0) FROM reviews AS recommended), (SELECT (json_build_object('1', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 1), '2', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 2), '3', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 3), '4', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 4), '5', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 5)))) AS ratings
-  // FROM
-  //   characteristics
-  // WHERE
-  //   (product_id = 4);
-
-
-
-  // WORKS TO GET CORRECT KEYS AND VALUES
-  // SELECT
-  //     (json_object_agg (characteristics.name,
-  //       json_build_object( 'id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id))))
-  // FROM
-  //   characteristics
-  // WHERE
-  //   (product_id = 4);
-  // GROUP BY
-  //   reviews.product_id, characteristics.name;
 
   // need to figure out how to handle recommend, response, helpfulness, reported
   addReview: (req, res) => {
@@ -107,7 +78,42 @@ module.exports = {
 };
 
 
+  // WORKING RECOMMENDED AND RATINGS DRAFTS
+  // COALESCE (COUNT(rating) WHERE rating = 1) AS ratings,
+  // COALESCE (sum(CASE WHEN recommend THEN 1 ELSE 0 END), 0) AS recommended
+  // GROUP BY
+  // reviews.product_id, characteristics.name;
 
+  // MOST RECENT DRAFT
+  // SELECT
+  //     (json_object_agg
+  //       (characteristics.name,
+  //       json_build_object(
+  //         'id', characteristics.id, 'value',
+  //         (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id AND product_id = 4)))) AS characteristics,
+  //       (SELECT (sum(CASE WHEN recommend THEN 1 ELSE 0 END)) FROM reviews WHERE product_id = 4) AS recommended,
+  //       (SELECT (json_build_object(
+  //       '1', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 1 AND product_id = 4),
+  //       '2', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 2 AND product_id = 4),
+  //       '3', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 3 AND product_id = 4),
+  //       '4', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 4 AND product_id = 4),
+  //       '5', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 5 AND product_id = 4))))
+  //       AS ratings
+  // FROM
+  //   characteristics
+  // WHERE
+  //   (product_id = 4);
+
+  // WORKS TO GET CORRECT KEYS AND VALUES
+  // SELECT
+  //     (json_object_agg (characteristics.name,
+  //       json_build_object( 'id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id))))
+  // FROM
+  //   characteristics
+  // WHERE
+  //   (product_id = 4);
+  // GROUP BY
+  //   reviews.product_id, characteristics.name;
 
   // // makes one entry per characteristic
   // SELECT
