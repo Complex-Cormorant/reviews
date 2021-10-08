@@ -1,10 +1,11 @@
+var config = require('../config.js');
 var { Pool } = require('pg')
 var db = new Pool({
-  user: 'savanna',
-  password: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  database: 'reviews'
+  user: config.user,
+  password: config.password,
+  host: config.host,
+  port: config.port,
+  database: config.database
 })
 
 db.connect()

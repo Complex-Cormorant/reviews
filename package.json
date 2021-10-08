@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/Complex-Cormorant/reviews#readme",
   "dependencies": {
+    "newrelic": "^8.4.0",
     "pg": "^8.7.1"
   }
 }
