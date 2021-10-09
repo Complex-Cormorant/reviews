@@ -1,6 +1,5 @@
 const express = require('express')
 const app = express()
-const newrelic = require('newrelic');
 var path = require('path');
 // const host = '3.101.24.87';
 const port = 3000;
