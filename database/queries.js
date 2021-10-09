@@ -35,6 +35,7 @@ module.exports = {
       if (error) {
         res.send(error.message);
       } else {
+        console.log('working')
         res.send(results.rows)
       }
     })
