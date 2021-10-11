@@ -40,3 +40,4 @@
       FOREIGN KEY (characteristic_id)
       REFERENCES characteristics (id)
   );
+

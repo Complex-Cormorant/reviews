@@ -1,11 +1,9 @@
 const express = require('express')
 const app = express()
 var path = require('path');
-// const host = '3.101.24.87';
 const port = 3000;
 const db = require('../database/index.js');
 const queries = require('../database/queries.js');
-// install morgan
 
 app.use(express.static((path.join(__dirname + 'public'))));
 app.use(express.json());

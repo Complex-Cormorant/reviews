@@ -13,8 +13,6 @@ module.exports = {
     })
   },
 
-  // need to add characteristics, add coalesce
-
   getReviewsAndPhotos: (req, res) => {
     const id = (req.query.product_id)
     pool.query("SELECT reviews.id, product_id, rating, to_timestamp(cast(date/1000 as bigint)) AS date, summary, body, recommend, reported, reviewer_name, reviewer_email, response, helpfulness, ARRAY_AGG ( json_build_object('id', review_photos.id, 'url', review_photos.url)) photos FROM reviews LEFT JOIN review_photos ON reviews.id = review_photos.review_id WHERE (product_id = $1) GROUP BY reviews.id;", [id], (error, results) => {
@@ -26,9 +24,6 @@ module.exports = {
     })
   },
 
-  // need to figure out how to get name to show up correctly
-  // are the values supposed to be averages for each characteristic?
-  // can't use name 'characteristics' because it's a table name
   getMeta: (req, res) => {
     const id = (req.query.product_id)
     pool.query("SELECT (json_object_agg (characteristics.name, json_build_object('id', characteristics.id, 'value', (SELECT AVG(characteristic_reviews.value) FROM characteristic_reviews WHERE characteristic_reviews.characteristic_id = characteristics.id AND product_id = $1)))) AS characteristics, (SELECT (sum(CASE WHEN recommend THEN 1 ELSE 0 END)) FROM reviews WHERE product_id = $1) AS recommended, (SELECT (json_build_object('1', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 1 AND product_id = $1), '2', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 2 AND product_id = $1), '3', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 3 AND product_id = $1), '4', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 4 AND product_id = $1), '5', (SELECT SUM (reviews.rating) FROM reviews WHERE rating = 5 AND product_id = $1)))) AS ratings FROM characteristics WHERE (product_id = $1);", [id], (error, results) => {
@@ -41,7 +36,6 @@ module.exports = {
     })
   },
 
-  // need to figure out how to handle recommend, response, helpfulness, reported
   addReview: (req, res) => {
     const { product_id, rating, date, summary, body, reviewer_name, reviewer_email } = req.body
     pool.query('INSERT INTO reviews (product_id, rating, date, summary, body, reviewer_name, reviewer_email) VALUES ($1, $2, $3, $4, $5, $6, $7);', [product_id, rating, date, summary, body, reviewer_name, reviewer_email], (error, results) => {
